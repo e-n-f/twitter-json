@@ -10,7 +10,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Json2 {
+public class Json3 {
 	private CharSequence cs;
 	private int off;
 
@@ -50,6 +50,7 @@ public class Json2 {
 				String text = (String) map.get("text");
 				String screen_name = (String) user.get("screen_name");
 				String created_at = (String) map.get("created_at");
+				String id = (String) map.get("id_str");
 
 				if (screen_name == null) {
 					screen_name = name;
@@ -63,8 +64,10 @@ public class Json2 {
 
 				String printdate = year + "-" + monthmap.get(mon) + "-" + day + " " + time;
 
-				System.out.println(screen_name + " " + printdate + " " +
-					coordinates.get(0) + "," + coordinates.get(1) + " " + quote(text));
+				System.out.println("@" + screen_name + " " + printdate + " " +
+					coordinates.get(0) + "," + coordinates.get(1) + " " + 
+					"http://twitter.com/" + screen_name + "/status/" + id +
+					" " + quote(text));
 			}
 		}
 	}
@@ -278,27 +281,29 @@ public class Json2 {
 			byte[] buf = new byte[5];
 			int used = 0;
 			InputStream fi;
+			String name = null;
+			boolean array = false;
 
 			if (argv.length == 0) {
 				fi = System.in;
 			} else {
 				fi = new FileInputStream(argv[0]);
-			}
 
-			String name = argv[0];
-			int ix = name.indexOf('.');
-			if (ix != 0) {
-				name = name.substring(0, ix);
+				name = argv[0];
+				int ix = name.indexOf('.');
+				if (ix > 0) {
+					name = name.substring(0, ix);
+				}
 			}
 
 			while (true) {
-				if (false) {
+				if (!array) {
 					for (int i = 0; i < used; i++) {
 						if (buf[i] == '\n') {
 							i++;
 
 							try {
-								Json2 j = new Json2();
+								Json3 j = new Json3();
 								String s = new String(buf, 0, i);
 								j.cs = s;
 
@@ -323,19 +328,23 @@ public class Json2 {
 
 				int n = fi.read(buf, used, buf.length - used);
 
-				if (n < 0) {
+				if (n <= 0) {
 					break;
 				} else {
+					if (buf[0] == '[') {
+						array = true;
+					}
+
 					used += n;
 				}
 			}
 
 			if (used > 0) {
-				Json2 j = new Json2();
+				Json3 j = new Json3();
 				String s = new String(buf, 0, used);
 				j.cs = s;
 
-				handle(j.read(), argv[0]);
+				handle(j.read(), name);
 			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
