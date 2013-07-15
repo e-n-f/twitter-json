@@ -10,7 +10,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Json3 {
+public class Json4 {
 	private CharSequence cs;
 	private int off;
 
@@ -44,8 +44,15 @@ public class Json3 {
 			Map<String, Object> geo = (Map<String, Object>) map.get("geo");
 			Map<String, Object> user = (Map<String, Object>) map.get("user");
 
+			if (geo == null) {
+				geo = (Map<String, Object>) map.get("place");
+				if (geo != null) {
+					geo = (Map<String, Object>) geo.get("bounding_box");
+				}
+			}
+
 			if (geo != null) {
-				List<Double> coordinates = (List<Double>) geo.get("coordinates");
+				List<Object> coordinates = (List<Object>) geo.get("coordinates");
 
 				String text = (String) map.get("text");
 				String screen_name = (String) user.get("screen_name");
@@ -64,11 +71,55 @@ public class Json3 {
 
 				String printdate = year + "-" + monthmap.get(mon) + "-" + day + " " + time;
 
-				String output = 
+				String output = "";
+				if (coordinates.get(0) instanceof Double) {
+					output = 
 				                   "@" + screen_name + " " + printdate + " " +
 					coordinates.get(0) + "," + coordinates.get(1) + " " + 
 					"http://twitter.com/" + screen_name + "/status/" + id +
 					" " + quote(text) + "\n";
+				} else if (coordinates.get(0) instanceof List) {
+					double minlat = 180;
+					double minlon = 180;
+					double maxlat = -180;
+					double maxlon = -180;
+
+					List<Object> edges = (List<Object>) coordinates.get(0);
+
+					for (int i = 0; i < edges.size(); i++) {
+						List<Double> edge = (List<Double>) edges.get(i);
+
+						double lon = edge.get(0);
+						double lat = edge.get(1);
+
+						if (lat < minlat) {
+							minlat = lat;
+						}
+						if (lat > maxlat) {
+							maxlat = lat;
+						}
+						if (lon < minlon) {
+							minlon = lon;
+						}
+						if (lon > maxlon) {
+							maxlon = lon;
+						}
+					}
+
+					double lat = (maxlat + minlat) / 2;
+					double lon = (maxlon + minlon) / 2;
+
+					double latd = (maxlat - minlat) / 2;
+					double lond = (maxlon - minlon) / 2;
+
+					String where = String.format("%.6f,%.6f,%.6f,%.6f", lat, lon, latd, lond);
+
+					output = 
+				                   "@" + screen_name + " " + printdate + " " +
+					where + " " +
+					"http://twitter.com/" + screen_name + "/status/" + id +
+					" " + quote(text) + "\n";
+				}
 
 				try {
 					byte[] ba = output.getBytes("utf-8");
@@ -311,7 +362,7 @@ public class Json3 {
 							i++;
 
 							try {
-								Json3 j = new Json3();
+								Json4 j = new Json4();
 								String s = new String(buf, 0, i);
 								j.cs = s;
 
@@ -348,7 +399,7 @@ public class Json3 {
 			}
 
 			if (used > 0) {
-				Json3 j = new Json3();
+				Json4 j = new Json4();
 				String s = new String(buf, 0, used);
 				j.cs = s;
 
