@@ -56,6 +56,7 @@ public class Json4 {
 
 				String text = (String) map.get("text");
 				String screen_name = (String) user.get("screen_name");
+				String full_name = (String) user.get("name");
 				String created_at = (String) map.get("created_at");
 				String id = (String) map.get("id_str");
 				String source = (String) map.get("source");
@@ -79,6 +80,7 @@ public class Json4 {
 					coordinates.get(0) + "," + coordinates.get(1) + " " + 
 					"http://twitter.com/" + screen_name + "/status/" + id +
 					" " + desource(source) +
+					" " + mangleName(full_name) +
 					" " + quote(text) + "\n";
 				} else if (coordinates.get(0) instanceof List) {
 					double minlat = 180;
@@ -121,6 +123,7 @@ public class Json4 {
 					where + " " +
 					"http://twitter.com/" + screen_name + "/status/" + id +
 					" " + desource(source) +
+					" " + mangleName(full_name) +
 					" " + quote(text) + "\n";
 				}
 
@@ -132,6 +135,24 @@ public class Json4 {
 				}
 			}
 		}
+	}
+
+	private static StringBuilder mangleName(String text) {
+		StringBuilder sb = new StringBuilder("name:");
+
+		if (text == null) {
+			return sb;
+		}
+
+		for (int i = 0; i < text.length(); i++) {
+			if (text.charAt(i) == ' ') {
+				sb.append('_');
+			} else {
+				sb.append(text.charAt(i));
+			}
+		}
+
+		return sb;
 	}
 
 	private static StringBuilder quote(String text) {
