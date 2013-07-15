@@ -64,10 +64,18 @@ public class Json3 {
 
 				String printdate = year + "-" + monthmap.get(mon) + "-" + day + " " + time;
 
-				System.out.println("@" + screen_name + " " + printdate + " " +
+				String output = 
+				                   "@" + screen_name + " " + printdate + " " +
 					coordinates.get(0) + "," + coordinates.get(1) + " " + 
 					"http://twitter.com/" + screen_name + "/status/" + id +
-					" " + quote(text));
+					" " + quote(text) + "\n";
+
+				try {
+					byte[] ba = output.getBytes("utf-8");
+					System.out.write(ba, 0, ba.length);
+				} catch (java.io.UnsupportedEncodingException e) {
+					System.out.print(output);
+				}
 			}
 		}
 	}
@@ -81,7 +89,7 @@ public class Json3 {
 
 			if (c == '\\') {
 				sb.append("\\\\");
-			} else if (c < ' ' || c > '~') {
+			} else if (c < ' ') {
 				if (c >= 0x1000) {
 					sb.append("\\u" + Integer.toHexString(c));
 				} else if (c >= 0x100) {
