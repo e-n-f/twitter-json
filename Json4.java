@@ -10,7 +10,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Json {
+public class Json2 {
 	private CharSequence cs;
 	private int off;
 
@@ -32,28 +32,40 @@ public class Json {
 		monthmap.put("Dec", "12");
 	}
 
-	private static void handle(Object o) {
-		Map<String, Object> map = (Map<String, Object>) o;
-		Map<String, Object> geo = (Map<String, Object>) map.get("geo");
-		Map<String, Object> user = (Map<String, Object>) map.get("user");
+	private static void handle(Object o, String name) {
+		if (o instanceof List) {
+			List l = (List) o;
 
-		if (geo != null) {
-			List<Double> coordinates = (List<Double>) geo.get("coordinates");
+			for (int i = 0; i < l.size(); i++) {
+				handle(l.get(i), name);
+			}
+		} else {
+			Map<String, Object> map = (Map<String, Object>) o;
+			Map<String, Object> geo = (Map<String, Object>) map.get("geo");
+			Map<String, Object> user = (Map<String, Object>) map.get("user");
 
-			String text = (String) map.get("text");
-			String screen_name = (String) user.get("screen_name");
-			String created_at = (String) map.get("created_at");
+			if (geo != null) {
+				List<Double> coordinates = (List<Double>) geo.get("coordinates");
 
-// Sun May 15 02:55:14 +0000 2011
-			String mon = created_at.substring(4, 7);
-			String day = created_at.substring(8, 10);
-			String time = created_at.substring(11, 19);
-			String year = created_at.substring(26, 30);
+				String text = (String) map.get("text");
+				String screen_name = (String) user.get("screen_name");
+				String created_at = (String) map.get("created_at");
 
-			String printdate = year + "-" + monthmap.get(mon) + "-" + day + " " + time;
+				if (screen_name == null) {
+					screen_name = name;
+				}
 
-			System.out.println(screen_name + " " + printdate + " " +
-				coordinates.get(0) + "," + coordinates.get(1) + " " + quote(text));
+	// Sun May 15 02:55:14 +0000 2011
+				String mon = created_at.substring(4, 7);
+				String day = created_at.substring(8, 10);
+				String time = created_at.substring(11, 19);
+				String year = created_at.substring(26, 30);
+
+				String printdate = year + "-" + monthmap.get(mon) + "-" + day + " " + time;
+
+				System.out.println(screen_name + " " + printdate + " " +
+					coordinates.get(0) + "," + coordinates.get(1) + " " + quote(text));
+			}
 		}
 	}
 
@@ -265,28 +277,41 @@ public class Json {
 		try {
 			byte[] buf = new byte[5];
 			int used = 0;
+			InputStream fi;
 
-			InputStream fi = System.in; // new FileInputStream(argv[0]);
+			if (argv.length == 0) {
+				fi = System.in;
+			} else {
+				fi = new FileInputStream(argv[0]);
+			}
+
+			String name = argv[0];
+			int ix = name.indexOf('.');
+			if (ix != 0) {
+				name = name.substring(0, ix);
+			}
 
 			while (true) {
-				for (int i = 0; i < used; i++) {
-					if (buf[i] == '\n') {
-						i++;
+				if (false) {
+					for (int i = 0; i < used; i++) {
+						if (buf[i] == '\n') {
+							i++;
 
-						try {
-							Json j = new Json();
-							String s = new String(buf, 0, i);
-							j.cs = s;
+							try {
+								Json2 j = new Json2();
+								String s = new String(buf, 0, i);
+								j.cs = s;
 
-							handle(j.read());
-						} catch (Throwable t) {
-							t.printStackTrace();
+								handle(j.read(), name);
+							} catch (Throwable t) {
+								t.printStackTrace();
+							}
+
+							System.arraycopy(buf, i, buf, 0, used - i);
+							used -= i;
+
+							break;
 						}
-
-						System.arraycopy(buf, i, buf, 0, used - i);
-						used -= i;
-
-						break;
 					}
 				}
 
@@ -303,6 +328,14 @@ public class Json {
 				} else {
 					used += n;
 				}
+			}
+
+			if (used > 0) {
+				Json2 j = new Json2();
+				String s = new String(buf, 0, used);
+				j.cs = s;
+
+				handle(j.read(), argv[0]);
 			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
