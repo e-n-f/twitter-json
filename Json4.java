@@ -58,6 +58,7 @@ public class Json4 {
 				String screen_name = (String) user.get("screen_name");
 				String created_at = (String) map.get("created_at");
 				String id = (String) map.get("id_str");
+				String source = (String) map.get("source");
 
 				if (screen_name == null) {
 					screen_name = name;
@@ -77,6 +78,7 @@ public class Json4 {
 				                   "@" + screen_name + " " + printdate + " " +
 					coordinates.get(0) + "," + coordinates.get(1) + " " + 
 					"http://twitter.com/" + screen_name + "/status/" + id +
+					" " + desource(source) +
 					" " + quote(text) + "\n";
 				} else if (coordinates.get(0) instanceof List) {
 					double minlat = 180;
@@ -118,6 +120,7 @@ public class Json4 {
 				                   "@" + screen_name + " " + printdate + " " +
 					where + " " +
 					"http://twitter.com/" + screen_name + "/status/" + id +
+					" " + desource(source) +
 					" " + quote(text) + "\n";
 				}
 
@@ -158,6 +161,36 @@ public class Json4 {
 		return sb;
 	}
 
+	private static String desource(String text) {
+		StringBuilder sb = new StringBuilder();
+		int within = 0;
+
+		if (text == null) {
+			text = "";
+		}
+		int len = text.length();
+
+		for (int i = 0; i < len; i++) {
+			char c = text.charAt(i);
+
+			if (c == '<') {
+				within++;
+			} else if (c == '>') {
+				within--;
+			} else if (c <= ' ') {
+				if (within == 0) {
+					sb.append('_');
+				}
+			} else {
+				if (within == 0) {
+					sb.append(c);
+				}
+			}
+		}
+
+		return "source:" + sb;
+	}
+
 	private void skip() {
 		while (off < cs.length()) {
 			char c = cs.charAt(off);
@@ -196,7 +229,7 @@ public class Json4 {
 		char c;
 		StringBuilder sb = new StringBuilder();
 
-		while (true) {
+		while (off < cs.length()) {
 			c = cs.charAt(off++);
 
 			if (c == '\"') {
@@ -238,6 +271,8 @@ public class Json4 {
 				sb.append(c);
 			}
 		}
+
+		return sb.toString();
 	}
 
 	private List<Object> readArray() {
