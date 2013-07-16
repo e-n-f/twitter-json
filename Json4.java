@@ -80,7 +80,7 @@ public class Json4 {
 					coordinates.get(0) + "," + coordinates.get(1) + " " + 
 					"http://twitter.com/" + screen_name + "/status/" + id +
 					" " + desource(source) +
-					" " + mangleName(full_name) +
+					" " + quote(mangleName(full_name).toString()) +
 					" " + quote(text) + "\n";
 				} else if (coordinates.get(0) instanceof List) {
 					double minlat = 180;
@@ -123,7 +123,7 @@ public class Json4 {
 					where + " " +
 					"http://twitter.com/" + screen_name + "/status/" + id +
 					" " + desource(source) +
-					" " + mangleName(full_name) +
+					" " + quote(mangleName(full_name).toString()) +
 					" " + quote(text) + "\n";
 				}
 
