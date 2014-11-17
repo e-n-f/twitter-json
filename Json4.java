@@ -463,7 +463,11 @@ public class Json4 {
 				String s = new String(buf, 0, used);
 				j.cs = s;
 
-				handle(j.read(), name);
+				try {
+					handle(j.read(), name);
+				} catch (Throwable t) {
+					t.printStackTrace();
+				}
 			}
 		} catch (IOException ioe) {
 			ioe.printStackTrace();
