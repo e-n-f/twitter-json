@@ -65,6 +65,10 @@ public class Json4 {
 					screen_name = name;
 				}
 
+				if (text == null || created_at == null || id == null || source == null) {
+					return;
+				}
+
 	// Sun May 15 02:55:14 +0000 2011
 				String mon = created_at.substring(4, 7);
 				String day = created_at.substring(8, 10);
